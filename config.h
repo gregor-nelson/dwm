@@ -1,9 +1,10 @@
-/* See LICENSE file for copyright and license details. */
+#include <X11/XF86keysym.h>
+#define BROWSER "chromium"
+#define FILEMANAGER "thunar"
 
-#define XF86MonBrightnessDown 0x1008ff03
-#define XF86MonBrightnessUp 0x1008ff02
 
-/* appearance */
+
+/* Appearance */
 static const unsigned int borderpx  = 0;        /* border pixel of windows */
 static const unsigned int default_border = 0;  // to switch back to default border after dynamic border resizing via keybinds
 static const unsigned int snap      = 32;       /* snap pixel */
@@ -29,13 +30,16 @@ static const int horizpadtabo       = 15;
 static const int scalepreview       = 4;
 static       int tag_preview        = 0;        /* 1 means enable, 0 is off */
 
-static const char *fonts[]          = { "JetBrainsMono Nerd Font:style:medium:size=10",
-                                        "Material Design Icons-Regular:size=10",
-                                      };
+static const char *fonts[]          = {"JetBrainsMono Nerd Font:style:medium:size=10" ,"NotoColorEmoji:pixelsize=10:antialias=true:autohint=true" };
 static const char dmenufont[]       = "monospace:size=10";
 static const int colorfultag        = 1;  /* 0 means use SchemeSel for selected non vacant tag */
 
-// theme
+//Volume Control
+static const char *upvol[]   = { "/usr/bin/pactl", "set-sink-volume", "0", "+1%",     NULL };
+static const char *downvol[] = { "/usr/bin/pactl", "set-sink-volume", "0", "-1%",     NULL };
+static const char *mutevol[] = { "/usr/bin/pactl", "set-sink-mute",   "0", "toggle",  NULL };
+
+// Theme
 #include "themes/onedark.h"
 
 static const char *colors[][3]      = {
@@ -56,9 +60,8 @@ static const char *colors[][3]      = {
     [SchemeBtnClose]   = { red, black, black }, 
 };
 
-
-
 /* tagging */
+
 static char *tags[] = {" ", " ", " ", " ", " "};
 
 static const int tagschemes[] = { SchemeTag1, SchemeTag2, SchemeTag3,
@@ -78,11 +81,11 @@ static const Rule rules[] = {
        	/* class      instance    title       tags mask     iscentered   isfloating   monitor */
 	{ "Gimp",     NULL,       NULL,       0,            0,           1,           -1 },
 	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           0,           -1 },
-      	{ "eww",      NULL,       NULL,       0,            0,           1,           -1 },
     
 };
 
-/* layout(s) */
+/* Layout(s) */
+
 static const float mfact     = 0.50; /* factor of master area size [0.05..0.95] */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
@@ -90,7 +93,6 @@ static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen win
 
 #define FORCE_VSPLIT 1  /* nrowgrid layout: force two clients to always split vertically */
 #include "functions.h"
-
 
 static const Layout layouts[] = {
     /* symbol     arrange function */
@@ -125,21 +127,31 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", NULL };
 static const char *termcmd[]  = {  "st", NULL }; // change this to your term
-static const char *rofi[] = {"rofi", "-show", "drun", NULL };
-static const char *xi[] = {"xbacklight", "-inc", "7", NULL};
-static const char *xd[] = {"xbacklight", "-dec", "7", NULL};
+static const char *rofidrun[] = {"rofi", "-show", "drun", NULL };
+static const char *rofirun[] = {"rofi", "-show", "run", NULL };
+static const char *roficalc[] = {"rofi", "-show", "calc", "-modi", "calc", "-no-show-match", "-no-sort", NULL };
 
 static Key keys[] = {
-    /* modifier                     key        function        argument */
-    { MODKEY,                       XK_c,      spawn,          {.v = rofi } },
-    { MODKEY,                       XK_Return, spawn,          {.v = termcmd }},  
 
-    {MODKEY | ControlMask, XK_u, spawn, SHCMD("maim | xclip -selection clipboard -t image/png")},
-    {MODKEY, XK_u, spawn,   SHCMD("maim --select | xclip -selection clipboard -t image/png")},
-    {0, XF86MonBrightnessDown, spawn, {.v = xd}},
-    {0, XF86MonBrightnessUp, spawn, {.v = xi}},
+    /* modifier                     key        function        argument */
+
+
+     // Audio 
+    {0,                       XF86XK_AudioLowerVolume, spawn, {.v = downvol}},
+	{0,                       XF86XK_AudioMute, spawn, {.v = mutevol }},
+	{0,                       XF86XK_AudioRaiseVolume, spawn, {.v = upvol}},
+
+
+    { MODKEY,			XK_w,		spawn,		{.v = (const char*[]){ BROWSER, NULL } } },
+    { MODKEY,			XK_r,		spawn,		{.v = (const char*[]){ FILEMANAGER, NULL } } },
+    { MODKEY,                       XK_c,      spawn,          {.v = rofidrun } },
+    { MODKEY|ControlMask,           XK_c,      spawn,          {.v = rofirun } },
+    { MODKEY|ShiftMask,             XK_c,      spawn,          {.v = roficalc } },
+
+
+    { MODKEY,                       XK_Return, spawn,          {.v = termcmd }},  
     { MODKEY,                       XK_b,      togglebar,      {0} },
-    { MODKEY|ControlMask,                       XK_w,      tabmode,        { -1 } },
+    { MODKEY|ControlMask,           XK_w,      tabmode,        { -1 } },
     { MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
     { MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
     { MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
@@ -151,7 +163,6 @@ static Key keys[] = {
     { MODKEY|ShiftMask,             XK_o,      setcfact,       {.f =  0.00} },
     { MODKEY|ShiftMask,             XK_j,      movestack,      {.i = +1 } },
     { MODKEY|ShiftMask,             XK_k,      movestack,      {.i = -1 } },
-    { MODKEY,                       XK_Return, zoom,           {0} },
     { MODKEY,                       XK_Tab,    view,           {0} },
 
     // overall gaps
@@ -176,7 +187,7 @@ static Key keys[] = {
     { MODKEY|ControlMask|ShiftMask,    XK_9,      incrovgaps,     {.i = -1 } },
 
     { MODKEY|ControlMask,           XK_t,      togglegaps,     {0} },
-    { MODKEY|ControlMask|ShiftMask,             XK_d,      defaultgaps,    {0} },
+    { MODKEY|ControlMask|ShiftMask, XK_d,      defaultgaps,    {0} },
 
     { MODKEY,                       XK_q,      killclient,     {0} },
     { MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
@@ -185,7 +196,7 @@ static Key keys[] = {
     { MODKEY|ControlMask,           XK_g,      setlayout,      {.v = &layouts[10]} },
     { MODKEY|ControlMask|ShiftMask, XK_t,      setlayout,      {.v = &layouts[13]} },
     { MODKEY,                       XK_space,  setlayout,      {0} },
-    { MODKEY|ControlMask,		XK_comma,  cyclelayout,    {.i = -1 } },
+    { MODKEY|ControlMask,		    XK_comma,  cyclelayout,    {.i = -1 } },
     { MODKEY|ControlMask,           XK_period, cyclelayout,    {.i = +1 } },
     { MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
     { MODKEY,                       XK_f,      togglefullscr,  {0} },
@@ -208,9 +219,8 @@ static Key keys[] = {
     TAGKEYS(                        XK_7,                      6)
     TAGKEYS(                        XK_8,                      7)
     TAGKEYS(                        XK_9,                      8)
-    {
-        MODKEY|ControlMask,           XK_q,      quit,           {0}
-    },
+    
+    {MODKEY|ControlMask,            XK_q,      quit,           {0} },
     { MODKEY|ShiftMask,             XK_r,      quit,           {1} },
     { MODKEY,                       XK_e,      hidewin,        {0} },
     { MODKEY|ShiftMask,             XK_e,      restorewin,     {0} },
@@ -239,7 +249,7 @@ static Button buttons[] = {
 		 * to control these separately (i.e. to retain the feature to move a tiled window
 		 * into a floating position).
 		 */
-		{ ClkClientWin,         MODKEY,         Button1,        moveorplace,    {.i = 0} },
+	{ ClkClientWin,         MODKEY,         Button1,        moveorplace,    {.i = 0} },
     { ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
     { ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
     { ClkClientWin,         ControlMask,    Button1,        dragmfact,      {0} },
