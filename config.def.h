@@ -1,8 +1,6 @@
 #include <X11/XF86keysym.h>
-#define BROWSER "chromium"
+#define BROWSER "microsoft-edge-stable"
 #define FILEMANAGER "thunar"
-
-
 
 /* Appearance */
 static const unsigned int borderpx  = 0;        /* border pixel of windows */
@@ -35,9 +33,13 @@ static const char dmenufont[]       = "monospace:size=10";
 static const int colorfultag        = 1;  /* 0 means use SchemeSel for selected non vacant tag */
 
 //Volume Control
-static const char *upvol[]   = { "/usr/bin/pactl", "set-sink-volume", "0", "+1%",     NULL };
-static const char *downvol[] = { "/usr/bin/pactl", "set-sink-volume", "0", "-1%",     NULL };
-static const char *mutevol[] = { "/usr/bin/pactl", "set-sink-mute",   "0", "toggle",  NULL };
+static const char *upvol[]   = { "/usr/bin/pactl", "set-sink-volume", "alsa_output.pci-0000_00_1b.0.analog-stereo", "+1%",     NULL };
+static const char *downvol[] = { "/usr/bin/pactl", "set-sink-volume", "alsa_output.pci-0000_00_1b.0.analog-stereo", "-1%",     NULL };
+static const char *mutevol[] = { "/usr/bin/pactl", "set-sink-mute",   "alsa_output.pci-0000_00_1b.0.analog-stereo", "toggle",  NULL };
+
+//Brightness Control
+static const char *light_up[] = {"/usr/bin/light", "-A", "5", NULL};
+static const char *light_down[] = {"/usr/bin/light", "-U", "5", NULL};
 
 // Theme
 #include "themes/onedark.h"
@@ -141,6 +143,9 @@ static Key keys[] = {
 	{0,                       XF86XK_AudioMute, spawn, {.v = mutevol }},
 	{0,                       XF86XK_AudioRaiseVolume, spawn, {.v = upvol}},
 
+	//Brightness 
+	{0,				XF86XK_MonBrightnessUp,		spawn,	{.v = light_up}},
+	{0,				XF86XK_MonBrightnessDown,	spawn,	{.v = light_down}},
 
     { MODKEY,			XK_w,		spawn,		{.v = (const char*[]){ BROWSER, NULL } } },
     { MODKEY,			XK_r,		spawn,		{.v = (const char*[]){ FILEMANAGER, NULL } } },
