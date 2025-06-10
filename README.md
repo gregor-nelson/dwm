@@ -100,7 +100,7 @@ key                    | Do             | Value
 # Install
 
 ```
-git clone https://github.com/ElonMuskRat420xx/dwm.git
+git clone https://github.com/gregor-nelson/dwm.git
 cd dwm
 sudo make install
 ```
