@@ -1,47 +1,45 @@
 #include <X11/XF86keysym.h>
-#define BROWSER "microsoft-edge-stable"
+#define BROWSER "chromium"
 #define FILEMANAGER "thunar"
 
 /* Appearance */
-static const unsigned int borderpx  = 0;        /* border pixel of windows */
-static const unsigned int default_border = 0;  // to switch back to default border after dynamic border resizing via keybinds
-static const unsigned int snap      = 32;       /* snap pixel */
-static const unsigned int gappih    = 10;       /* horiz inner gap between windows */
-static const unsigned int gappiv    = 10;       /* vert inner gap between windows */
-static const unsigned int gappoh    = 10;       /* horiz outer gap between windows and screen edge */
-static const unsigned int gappov    = 10;       /* vert outer gap between windows and screen edge */
-static       int smartgaps          = 0;        /* 1 means no outer gap when there is only one window */
-static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows selected monitor, >0: pin systray to monitor X */
-static const unsigned int systrayspacing = 2;   /* systray spacing */
-static const int systraypinningfailfirst = 1;   /* 1: if pinning fails,display systray on the 1st monitor,False: display systray on last monitor*/
-static const int showsystray        = 1;     /* 0 means no systray */
-static const int showbar            = 1;        /* 0 means no bar */
+static const unsigned int borderpx  = 1;
+static const unsigned int default_border = 1;
+static const unsigned int snap      = 32;
+static const unsigned int gappih    = 10;
+static const unsigned int gappiv    = 10;
+static const unsigned int gappoh    = 10;
+static const unsigned int gappov    = 10;
+static       int smartgaps          = 0;
+static const unsigned int systraypinning = 0;
+static const unsigned int systrayspacing = 2;
+static const int systraypinningfailfirst = 1;
+static const int showsystray        = 1;
+static const int showbar            = 1;
 enum showtab_modes { showtab_never, showtab_auto, showtab_nmodes, showtab_always };
 static const int showtab            = showtab_auto;
 static const int toptab             = True;
-static const int topbar             = 1;        /* 0 means bottom bar */
+static const int topbar             = 1;
 static const int horizpadbar        = 5;
 static const int vertpadbar         = 11;
 static const int vertpadtab         = 33;
 static const int horizpadtabi       = 15;
 static const int horizpadtabo       = 15;
 static const int scalepreview       = 4;
-static       int tag_preview        = 0;        /* 1 means enable, 0 is off */
+static       int tag_preview        = 0;
 
-static const char *fonts[]          = {"JetBrainsMono Nerd Font:style:medium:size=10" ,"NotoColorEmoji:pixelsize=10:antialias=true:autohint=true" };
-static const char dmenufont[]       = "monospace:size=10";
-static const int colorfultag        = 1;  /* 0 means use SchemeSel for selected non vacant tag */
+static const char *fonts[]          = { "JetBrainsMono Nerd Font:style:medium:size=10" };
+static const int colorfultag        = 1;
 
-//Volume Control
-static const char *upvol[]   = { "/usr/bin/pactl", "set-sink-volume", "alsa_output.pci-0000_00_1b.0.analog-stereo", "+1%",     NULL };
-static const char *downvol[] = { "/usr/bin/pactl", "set-sink-volume", "alsa_output.pci-0000_00_1b.0.analog-stereo", "-1%",     NULL };
-static const char *mutevol[] = { "/usr/bin/pactl", "set-sink-mute",   "alsa_output.pci-0000_00_1b.0.analog-stereo", "toggle",  NULL };
+/* Volume */
+static const char *upvol[]   = { "pactl", "set-sink-volume", "@DEFAULT_SINK@", "+1%", NULL };
+static const char *downvol[] = { "pactl", "set-sink-volume", "@DEFAULT_SINK@", "-1%", NULL };
+static const char *mutevol[] = { "pactl", "set-sink-mute",   "@DEFAULT_SINK@", "toggle", NULL };
 
-//Brightness Control
-static const char *light_up[] = {"/usr/bin/light", "-A", "5", NULL};
-static const char *light_down[] = {"/usr/bin/light", "-U", "5", NULL};
+/* Brightness */
+static const char *light_up[]   = { "brightnessctl", "set", "5%+", NULL };
+static const char *light_down[] = { "brightnessctl", "set", "5%-", NULL };
 
-// Theme
 #include "themes/onedark.h"
 
 static const char *colors[][3]      = {
@@ -62,43 +60,34 @@ static const char *colors[][3]      = {
     [SchemeBtnClose]   = { red, black, black }, 
 };
 
-/* tagging */
-
-static char *tags[] = {" ", " ", " ", " ", " "};
+static char *tags[] = {"  ", "  ", "  ", "  ", "  "};
 
 static const int tagschemes[] = { SchemeTag1, SchemeTag2, SchemeTag3,
                                   SchemeTag4, SchemeTag5
                                 };
 
-static const unsigned int ulinepad	= 5;	/* horizontal padding between the underline and tag */
-static const unsigned int ulinestroke	= 2;	/* thickness / height of the underline */
-static const unsigned int ulinevoffset	= 0;	/* how far above the bottom of the bar the line should appear */
-static const int ulineall 		= 0;	/* 1 to show underline on all tags, 0 for just the active ones */
+static const unsigned int ulinepad	= 5;
+static const unsigned int ulinestroke	= 2;
+static const unsigned int ulinevoffset	= 0;
+static const int ulineall 		= 0;
 
 static const Rule rules[] = {
-    /* xprop(1):
-     *	WM_CLASS(STRING) = instance, class
-     *	WM_NAME(STRING) = title
-     */
-       	/* class      instance    title       tags mask     iscentered   isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            0,           1,           -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           0,           -1 },
-    
+	/* class      instance    title       tags mask     iscentered   isfloating   monitor */
+	{ NULL,       NULL,       NULL,       0,            0,           0,           -1 },
 };
 
-/* Layout(s) */
+/* Layout */
+static const float mfact     = 0.50;
+static const int nmaster     = 1;
+static const int resizehints = 0;
+static const int lockfullscreen = 1;
 
-static const float mfact     = 0.50; /* factor of master area size [0.05..0.95] */
-static const int nmaster     = 1;    /* number of clients in master area */
-static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
-static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
-
-#define FORCE_VSPLIT 1  /* nrowgrid layout: force two clients to always split vertically */
+#define FORCE_VSPLIT 1
 #include "functions.h"
 
 static const Layout layouts[] = {
     /* symbol     arrange function */
-    { "[]=",      tile },    /* first entry is default */
+    { "[]=",      tile },
     { "[M]",      monocle },
     { "[@]",      spiral },
     { "[\\]",     dwindle },
@@ -111,10 +100,9 @@ static const Layout layouts[] = {
     { ":::",      gaplessgrid },
     { "|M|",      centeredmaster },
     { ">M>",      centeredfloatingmaster },
-    { "><>",      NULL },    /* no layout function means floating behavior */
+    { "><>",      NULL },
 };
 
-/* key definitions */
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
@@ -122,43 +110,42 @@ static const Layout layouts[] = {
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
 
-/* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
-/* commands */
-static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
+/* Commands */
+static char dmenumon[2] = "0";
 static const char *dmenucmd[] = { "dmenu_run", NULL };
-static const char *termcmd[]  = {  "st", NULL }; // change this to your term
-static const char *rofidrun[] = {"rofi", "-show", "drun", NULL };
-static const char *rofirun[] = {"rofi", "-show", "run", NULL };
-static const char *roficalc[] = {"rofi", "-show", "calc", "-modi", "calc", "-no-show-match", "-no-sort", NULL };
+static const char *termcmd[]  = { "st", NULL };
+static const char *rofidrun[] = { "rofi", "-show", "drun", NULL };
+static const char *rofirun[]  = { "rofi", "-show", "run", NULL };
+static const char *roficalc[] = { "rofi", "-show", "calc", "-modi", "calc", "-no-show-match", "-no-sort", NULL };
 
 static Key keys[] = {
+    /* modifier                     key                          function        argument */
 
-    /* modifier                     key        function        argument */
+    /* Media keys */
+    { 0,                            XF86XK_AudioLowerVolume,     spawn,          {.v = downvol} },
+    { 0,                            XF86XK_AudioMute,            spawn,          {.v = mutevol} },
+    { 0,                            XF86XK_AudioRaiseVolume,     spawn,          {.v = upvol} },
+    { 0,                            XF86XK_MonBrightnessUp,      spawn,          {.v = light_up} },
+    { 0,                            XF86XK_MonBrightnessDown,    spawn,          {.v = light_down} },
 
-
-     // Audio 
-    {0,                       XF86XK_AudioLowerVolume, spawn, {.v = downvol}},
-	{0,                       XF86XK_AudioMute, spawn, {.v = mutevol }},
-	{0,                       XF86XK_AudioRaiseVolume, spawn, {.v = upvol}},
-
-	//Brightness 
-	{0,				XF86XK_MonBrightnessUp,		spawn,	{.v = light_up}},
-	{0,				XF86XK_MonBrightnessDown,	spawn,	{.v = light_down}},
-
-    { MODKEY,			XK_w,		spawn,		{.v = (const char*[]){ BROWSER, NULL } } },
-    { MODKEY,			XK_r,		spawn,		{.v = (const char*[]){ FILEMANAGER, NULL } } },
+    /* Launchers */
+    { MODKEY,                       XK_w,      spawn,          {.v = (const char*[]){ BROWSER, NULL } } },
+    { MODKEY,                       XK_r,      spawn,          {.v = (const char*[]){ FILEMANAGER, NULL } } },
     { MODKEY,                       XK_c,      spawn,          {.v = rofidrun } },
     { MODKEY|ControlMask,           XK_c,      spawn,          {.v = rofirun } },
     { MODKEY|ShiftMask,             XK_c,      spawn,          {.v = roficalc } },
+    { MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 
-
-    { MODKEY,                       XK_Return, spawn,          {.v = termcmd }},  
     { MODKEY,                       XK_b,      togglebar,      {0} },
     { MODKEY|ControlMask,           XK_w,      tabmode,        { -1 } },
     { MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
     { MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
+    { MODKEY,                       XK_Left,   focusdir,       {.i = 0 } }, // left
+    { MODKEY,                       XK_Right,  focusdir,       {.i = 1 } }, // right
+    { MODKEY,                       XK_Up,     focusdir,       {.i = 2 } }, // up
+    { MODKEY,                       XK_Down,   focusdir,       {.i = 3 } }, // down
     { MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
     { MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
     { MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
@@ -170,18 +157,13 @@ static Key keys[] = {
     { MODKEY|ShiftMask,             XK_k,      movestack,      {.i = -1 } },
     { MODKEY,                       XK_Tab,    view,           {0} },
 
-    // overall gaps
-    { MODKEY|ControlMask,           XK_i,      incrgaps,       {.i = +1 } },
-    { MODKEY|ControlMask,           XK_d,      incrgaps,       {.i = -1 } },
-
-    // inner gaps
+    /* Gaps */
+    { MODKEY|ControlMask,              XK_i,      incrgaps,       {.i = +1 } },
+    { MODKEY|ControlMask,              XK_d,      incrgaps,       {.i = -1 } },
     { MODKEY|ShiftMask,                XK_i,      incrigaps,      {.i = +1 } },
     { MODKEY|ControlMask|ShiftMask,    XK_i,      incrigaps,      {.i = -1 } },
-
-    // outer gaps
     { MODKEY|ControlMask,              XK_o,      incrogaps,      {.i = +1 } },
     { MODKEY|ControlMask|ShiftMask,    XK_o,      incrogaps,      {.i = -1 } },
-
     { MODKEY|ControlMask,              XK_6,      incrihgaps,     {.i = +1 } },
     { MODKEY|ControlMask|ShiftMask,    XK_6,      incrihgaps,     {.i = -1 } },
     { MODKEY|ControlMask,              XK_7,      incrivgaps,     {.i = +1 } },
@@ -190,9 +172,8 @@ static Key keys[] = {
     { MODKEY|ControlMask|ShiftMask,    XK_8,      incrohgaps,     {.i = -1 } },
     { MODKEY|ControlMask,              XK_9,      incrovgaps,     {.i = +1 } },
     { MODKEY|ControlMask|ShiftMask,    XK_9,      incrovgaps,     {.i = -1 } },
-
-    { MODKEY|ControlMask,           XK_t,      togglegaps,     {0} },
-    { MODKEY|ControlMask|ShiftMask, XK_d,      defaultgaps,    {0} },
+    { MODKEY|ControlMask,              XK_t,      togglegaps,     {0} },
+    { MODKEY|ControlMask|ShiftMask,    XK_d,      defaultgaps,    {0} },
 
     { MODKEY,                       XK_q,      killclient,     {0} },
     { MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
@@ -220,41 +201,21 @@ static Key keys[] = {
     TAGKEYS(                        XK_3,                      2)
     TAGKEYS(                        XK_4,                      3)
     TAGKEYS(                        XK_5,                      4)
-    TAGKEYS(                        XK_6,                      5)
-    TAGKEYS(                        XK_7,                      6)
-    TAGKEYS(                        XK_8,                      7)
-    TAGKEYS(                        XK_9,                      8)
-    
-    {MODKEY|ControlMask,            XK_q,      quit,           {0} },
+
+    { MODKEY|ControlMask,           XK_q,      quit,           {0} },
     { MODKEY|ShiftMask,             XK_r,      quit,           {1} },
     { MODKEY,                       XK_e,      hidewin,        {0} },
     { MODKEY|ShiftMask,             XK_e,      restorewin,     {0} },
 
 };
 
-/* button definitions */
-/* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static Button buttons[] = {
     /* click                event mask      button          function        argument */
     { ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
     { ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
     { ClkWinTitle,          0,              Button2,        zoom,           {0} },
     { ClkStatusText,        0,              Button2,        spawn,          {.v = termcmd } },
-
-		/* Keep movemouse? */
-    /* { ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} }, */
-
-		/* placemouse options, choose which feels more natural:
-		 *    0 - tiled position is relative to mouse cursor
-		 *    1 - tiled postiion is relative to window center
-		 *    2 - mouse pointer warps to window center
-		 *
-		 * The moveorplace uses movemouse or placemouse depending on the floating state
-		 * of the selected client. Set up individual keybindings for the two if you want
-		 * to control these separately (i.e. to retain the feature to move a tiled window
-		 * into a floating position).
-		 */
-	{ ClkClientWin,         MODKEY,         Button1,        moveorplace,    {.i = 0} },
+    { ClkClientWin,         MODKEY,         Button1,        moveorplace,    {.i = 0} },
     { ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
     { ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
     { ClkClientWin,         ControlMask,    Button1,        dragmfact,      {0} },
@@ -263,7 +224,6 @@ static Button buttons[] = {
     { ClkTagBar,            0,              Button3,        toggleview,     {0} },
     { ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
     { ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
-    { ClkTabBar,            0,              Button1,        focuswin,       {0} },
     { ClkTabBar,            0,              Button1,        focuswin,       {0} },
     { ClkTabPrev,           0,              Button1,        movestack,      { .i = -1 } },
     { ClkTabNext,           0,              Button1,        movestack,      { .i = +1 } },
